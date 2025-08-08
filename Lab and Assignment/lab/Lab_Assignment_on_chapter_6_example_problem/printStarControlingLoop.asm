@@ -1,56 +1,64 @@
+; Display 80 stars in given rows using count-controlled loops
 .model small
 .stack 100h
 .data
-m db "Enter number of rows: $"
-s equ 80     ; number of stars per row
+m  db 0Dh,0Ah, "Enter number of rows (2, 4, or 5): $"
+newline db 0Dh,0Ah, "$"
 
 .code
 main proc
-    mov ax,@data
-    mov ds,ax
+    mov ax, @data
+    mov ds, ax
 
-    ; Ask for number of rows
+    ;prompt
     mov ah,9
     lea dx,m
-    int 21h
-
-    mov ah,1       ; read one char from keyboard
-    int 21h
-    sub al,48     ; convert ASCII to number
-    mov bl,al      ; store row count in BL
-
-    call newline
-
-    mov bh,0       ; clear upper byte
-    mov cx,bx      ; CX = number of rows
-
-outer_loop:
-    push cx        ; save row counter
-
-    mov cx,s       ; CX = number of stars
-inner_loop:
+    int 21h 
+    
+    ;read character
+    mov ah,1
+    int 21h 
+    sub al,'0' ;convert ascii to number
+    mov bl,al 
+     
+     ;newline
+     mov ah,9
+     lea dx,newline
+     int 21h
+    ;calculate stars per row =80/rows
+    
+    mov ax,80
+    mov dx,0    ;remainder
+    mov cl,bl
+    mov ch,0
+    div cx    ;AX/CX=AX,DX=remainder
+    mov bh,al ;BH=stars per row(quatient)  
+    
+    ;outer loop
+    mov dh,bl  ;DH=row counter
+    row_loop:
+    push dx      ;save rowcounter
+    
+    mov cl,bh    ;stars counter
+    inner_loop:
     mov ah,2
     mov dl,'*'
-    int 21h
+    int 21h 
+    
     loop inner_loop
-
-    call newline
-    pop cx         ; restore row counter
-    loop outer_loop
-
-    ; Exit
-    mov ah,4Ch
+    mov ah,9
+    lea dx,newline
+    int 21h  
+     pop dx
+    dec dh
+  
+    jnz row_loop
+    
+    
+    
+  
+    ; Exit program
+    mov ah, 4Ch
     int 21h
-
 main endp
-
-; Newline procedure
-newline proc
-    mov ah,2
-    mov dl,0Dh
-    int 21h
-    mov dl,0Ah
-    int 21h
-    ret
-newline endp
 end main
