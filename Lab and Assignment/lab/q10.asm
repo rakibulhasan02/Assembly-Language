@@ -1,67 +1,51 @@
-;Write a program to input hex-digit character and if the user fails to enter a hex-digit character
-;in three tries,display a message and terminate the program
+;write a program using stack to input a string and reverse it
 .model small
 .stack 100h
 .data
-m db 0dh,0ah,"Enter a hex digit(0-9,A-F): $"
-m1 db 0dh,0ah,"You entered: $"
-m2 db 0dh,0ah,"Invalid input 3 times. Terminating....$"
+    m1 db 0Dh, 0Ah, 'Enter a string (end with Enter): $'
+    nw db 0Dh, 0Ah, '$'
 .code
 main proc
-    mov ax,@data
-    mov ds,ax
-    
-    mov cx,3
-    loop_:
+    mov ax, @data
+    mov ds, ax
     ;prompt
     mov ah,9
-    lea dx,m
+    lea dx,m1
     int 21h
+   ; xor cx,cx ;cx=counter for number of character
+   mov cx,0
+    loop_:
     ;read character
     mov ah,1
     int 21h
-    mov bl,al
+    cmp al,0dh    ;carriage
+    je reverse
     
-    ;check 0-9
-    cmp bl,'0'
-    jb invalid
-    cmp bl,'9'
-    jbe valid
+    ;else
+    push ax    ;save character on stack
+    inc cx     ;count character
+    jmp loop_
     
-    ;check A-F
-    cmp bl,'A'
-    jb chksml
-    cmp bl,'F'
-    jbe valid
-    
-    chksml:
-    cmp bl,'a'
-    jb invalid
-    cmp bl,'f'
-    jbe valid
-    
-    invalid:
-    loop loop_
-    
-    ;if all 3 tries failed
+    reverse:
+    ;print newline
     mov ah,9
-    lea dx,m2
+    lea dx,nw
     int 21h
-    jmp exit
-     
-     valid:
-     mov ah,9
-     lea dx,m1
-     int 21h
-     mov ah,2
-     mov dl,bl
-     int 21h
+ 
+ print:
+    ;check if anything left to print
+    cmp cx,0
+    je exit
+    
+    pop dx ;get character from stack
+    mov ah,2
+    int 21h
+    dec cx
+    jmp print
     
     
-    
-    
-    exit:
-    mov ah,4ch
+exit:
+    mov ah, 4Ch
     int 21h
 main endp
 end main
